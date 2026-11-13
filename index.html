@@ -147,7 +147,7 @@ nav button.active,.primary,.gear.active-settings{background:#A54860;color:#FFFFF
  <div class="row"><div class="field"><label>날짜</label><input id="eventDate" type="date"></div><div class="field"><label>시간</label><input id="eventTime" type="time"></div></div>
  <div class="field"><label>분류 색상</label><select id="eventColor"><option value="">분홍</option><option value="blue">파랑</option><option value="purple">보라</option><option value="green">초록</option><option value="gold">골드</option></select></div>
  <div class="field"><label>상세 내용</label><textarea id="eventMemo" rows="3" placeholder="장소, 링크, 메모 등"></textarea></div>
- <div class="modal-actions"><button id="cancelModal">취소</button><button class="primary" id="saveEvent">저장</button></div>
+ <div class="modal-actions"><button id="deleteEvent" type="button" style="display:none;margin-right:auto;background:#8E4358;color:#fff;border-color:#8E4358">일정 삭제</button><button id="cancelModal">취소</button><button class="primary" id="saveEvent">저장</button></div>
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -181,7 +181,7 @@ function render(){
  if(view==='week'){renderWeek(c);return}
  renderMonth(c,false);
 }
-function eventNode(e){let div=document.createElement('div');div.className='event '+(e.color||'');div.textContent=(e.time?fmtTime(e.time)+' ':'')+e.title;div.title=(e.memo||'');let b=document.createElement('button');b.textContent='편집';b.onclick=()=>openModal(e);div.appendChild(b);return div}
+function eventNode(e){let div=document.createElement('div');div.className='event '+(e.color||'');div.textContent=(e.time?fmtTime(e.time)+' ':'')+e.title;div.title=(e.memo||'');let b=document.createElement('button');b.textContent='수정';b.onclick=()=>openModal(e);div.appendChild(b);return div}
 function renderMonth(c,all){
  let grid=document.createElement('div');grid.className='grid';['일','월','화','수','목','금','토'].forEach(x=>{let d=document.createElement('div');d.className='weekday';d.textContent=x;grid.appendChild(d)});
  let first=new Date(cursor.getFullYear(),cursor.getMonth(),1),start=new Date(first);start.setDate(1-first.getDay());
@@ -238,9 +238,10 @@ function renderSettings(c){
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function applyLinks(){[['soopLink',settings.soop],['youtubeLink',settings.youtube],['cafeLink',settings.cafe]].forEach(([id,url])=>$(id).href=url||'#')}
-function openModal(e=null,date=null){editing=e?.id||null;$('modalTitle').textContent=e?'일정 수정':'일정 추가';$('eventTitle').value=e?.title||'';$('eventDate').value=e?.date||date||iso(today);$('eventTime').value=e?.time||'';$('eventColor').value=e?.color||''; $('eventMemo').value=e?.memo||'';$('modalBack').style.display='flex'}
+function openModal(e=null,date=null){editing=e?.id||null;$('modalTitle').textContent=e?'일정 수정':'일정 추가';$('eventTitle').value=e?.title||'';$('eventDate').value=e?.date||date||iso(today);$('eventTime').value=e?.time||'';$('eventColor').value=e?.color||''; $('eventMemo').value=e?.memo||'';$('deleteEvent').style.display=e?'inline-flex':'none';$('modalBack').style.display='flex'}
 function closeModal(){$('modalBack').style.display='none'}
 $('saveEvent').onclick=()=>{let title=$('eventTitle').value.trim();if(!title){alert('일정 제목을 입력해 주세요.');return}let item={id:editing||String(Date.now()),title,date:$('eventDate').value,time:$('eventTime').value,color:$('eventColor').value, memo:$('eventMemo').value};if(editing){let i=events.findIndex(x=>x.id===editing);if(i>=0)events[i]=item}else events.push(item);save();closeModal();render()};
+$('deleteEvent').onclick=()=>{if(!editing)return;if(!confirm('이 일정을 삭제할까요? 삭제한 일정은 되돌릴 수 없습니다.'))return;events=events.filter(x=>x.id!==editing);editing=null;save();closeModal();render()};
 $('cancelModal').onclick=closeModal;$('addBtn').onclick=()=>openModal();$('settingsBtn').onclick=()=>{view=view==='settings'?'month':'settings';render()};function movePeriod(amount){
  if(view==='week')cursor.setDate(cursor.getDate()+amount*7);
  else if(view==='day')cursor.setDate(cursor.getDate()+amount);
